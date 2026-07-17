@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha
+kind: Rollout
+metadata:
+  name: kubeserve-canary
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: kubeserve
+  template:
+    metadata:
+      labels:
+        app: kubeserve
+    spec:
+      containers:
+        - name: c1
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+
+  strategy:
+    canary:
+      steps:
+        - setWeight: 25
+        - pause:
+           duration: 30s
+        - setWeight: 50
+        - pause:
+           duration: 30s
+        - setWeight: 75
+        - pause: 
+           duration: 30s
+        - setWeight: 100
